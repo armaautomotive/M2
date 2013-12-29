@@ -8,6 +8,8 @@ M2 is a runtime modular application framework. A kernel manages the compilation 
 
 Modules are native applications that implement a shared library allowing them to: be compiled and reloaded when source changes (kernel does this), communicate using IPC and report on message and error activity. Application modules can be written in C. Javascript, c++ and Java will follow shortly.
 
+Visualisation of applications (modules), their code for editing, errors and messages flowing between them are currently absent but represent a critical element to the system.
+
 Why:
 
 The framework allows for applications to be built and maintained in different ways.
