@@ -1,5 +1,5 @@
 /**
-* M2 App engine microkernel
+* M2 App engine kernel
 *
 * This program will instantiate and monitor all source files
 * within child directories that extend the framework header. 
@@ -7,7 +7,7 @@
 * Each source file is compiled and run in its own process where
 * it interacts with other processes through IPC. Source files can
 * be modified and will be compiled then deployed automatically with
-* no downtime. 
+* no downtime (Thanks the plan). 
 *
 * Features:
 * Source files in child directories become modules and run as services managed by the kernel where they communicate with each other.
@@ -66,7 +66,7 @@ void shutdown(void)
 
 
 /*
-*
+* isFileModule
 * 
 * Description: a file is a module if it is a supported language and includes the module library.
 */
@@ -116,7 +116,9 @@ int needsCompile(char * file)
 		bzero(&fst, sizeof(fst));
 		if (stat(moduleExecutable, &fst) == 0) { 
 			binaryTime = fst.st_mtime;
- 		}
+		}
+
+		free(moduleExecutable);
 
 		if( sourceTime > binaryTime ){
 			return 1;
@@ -234,6 +236,8 @@ int isModuleRunning(char * file)
 
 		pid_t pid = proc_find(processName);	
 		//printf("process '%s' pid: %d \n", processName, pid);
+		
+		free(moduleExecutable);
 		if (pid != -1) {
 			return 1;
 		}
