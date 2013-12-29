@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include "../src/module.h"
 
+// Called for each message this module (program) receives.
 int messageHandler(char * caller, char * message_name, char * arguments)
 {
 	printf("World module handler: %s  v2 \n\n", arguments);
@@ -12,10 +13,10 @@ int messageHandler(char * caller, char * message_name, char * arguments)
 int main(void)
 {
 	puts("World starting... ");
-	receiveMessages();
+	receiveMessages();  // start receiving messages for this module (program).
 
         int i = 20;
-        while(i > 0){ // Run loop
+        while(i > 0){ // Run loop (keeps the process in memory)
                 //puts("World module.");
                 sleep(1);
                 i--;

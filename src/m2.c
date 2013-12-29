@@ -28,7 +28,7 @@
 *
 * Why:
 *	Real time flexibility to change elements in a running system without interruption.
-*	Asyncronus module messages, scales like node.js but more paralelized.
+*	Asyncronus module messages, scales like node.js with possibility to paralelize.
 *	Code reusability, developer introspection of live data and errors.
 *
 * Copyright: 2013
@@ -64,6 +64,12 @@ void shutdown(void)
 	//vector_free(&modules);
 }
 
+
+/*
+*
+* 
+* Description: a file is a module if it is a supported language and includes the module library.
+*/
 int isFileModule(char *fileName)
 {
 	int result = 1;
@@ -85,14 +91,19 @@ int isFileModule(char *fileName)
 }
 
 
+/**
+* needsCompile
+*
+* Description: returns 1 if the file binary is older than the source.
+*/
 int needsCompile(char * file)
 {
 	char *moduleExecutable = NULL;
-        if(strstr(file, ".c") != NULL)
+        char *dot = strrchr(file, '.');
+	if (dot && !strcmp(dot, ".c"))
         {
                 moduleExecutable = substring(file, 0, strlen(file) - 2);
-        }
-        if(moduleExecutable != NULL){
+        
 		int sourceTime = 0;
 		int binaryTime = 0;
 		
@@ -102,18 +113,16 @@ int needsCompile(char * file)
 			sourceTime = fst.st_mtime;
 		}
 
-		//struct stat fst;
 		bzero(&fst, sizeof(fst));
 		if (stat(moduleExecutable, &fst) == 0) { 
 			binaryTime = fst.st_mtime;
  		}
 
-		// 1388045606 1388188055
-		//printf(" file times %d %d \n", sourceTime, binaryTime);
 		if( sourceTime > binaryTime ){
 			return 1;
 		}
 	}
+	// TODO: other languages...
 	return 0;
 }
 
@@ -128,41 +137,38 @@ int needsCompile(char * file)
 */
 int compileModule(char *file)
 {
-	// gcc -L/var/www/bitcoinads.com/m2/lib -Wl,-rpath=/var/www/bitcoinads.com/m2/lib -Wall -o ./apps/sample ./apps/sample.c -lm2 
-
 	char *path, *canon_path;
 	path = getcwd(NULL, 512);
-	//canon_path = realpath(path, NULL);
-	//printf(" path %s \n" , path);
 
 	char *moduleExecutable = NULL;
-	if(strstr(file, ".c") != NULL)
+	char *dot = strrchr(file, '.');
+	if (dot && !strcmp(dot, ".c"))  // Ends with '.c'
 	{
 		moduleExecutable = substring(file, 0, strlen(file) - 2); 
-	}	
-	if(moduleExecutable == NULL){
-		return 0;
+
+		char compileCommand[1024];
+		strcpy(compileCommand, "gcc -L");
+		strcat(compileCommand, path);
+		strcat(compileCommand, "/lib -Wl,-rpath=");
+		strcat(compileCommand, path);
+		strcat(compileCommand, "/lib -Wall -o "); 
+		strcat(compileCommand, moduleExecutable);
+		strcat(compileCommand, " ");
+		strcat(compileCommand, file);
+		strcat(compileCommand, " -lmodule -pthread -lrt"); 	
+		printf(" compile: %s \n", compileCommand);
+
+		system(compileCommand);
+
+		free(moduleExecutable);
+		return 1;
 	}
-
-	char compileCommand[1024];
-	strcpy(compileCommand, "gcc -L");
-	strcat(compileCommand, path);
-	strcat(compileCommand, "/lib -Wl,-rpath=");
-	strcat(compileCommand, path);
-	strcat(compileCommand, "/lib -Wall -o "); 
-	strcat(compileCommand, moduleExecutable);
-	strcat(compileCommand, " ");
-	strcat(compileCommand, file);
-	strcat(compileCommand, " -lmodule -pthread -lrt"); 	
-	printf(" compile: %s \n", compileCommand);
-
-	system(compileCommand);
-
-	free(moduleExecutable);
-	//free(path);
-	return 1;
+	// TODO: other languages
+	return 0;
 }
 
+
+// move this into another file
 pid_t proc_find(const char* name) 
 {
     DIR* dir;
@@ -206,14 +212,18 @@ pid_t proc_find(const char* name)
 }
 
 
+/**
+* isModuleRunning
+*
+* Description: given a source file check running processes to see if it's running.
+*/
 int isModuleRunning(char * file)
 {
 	char *moduleExecutable = NULL;
-        if(strstr(file, ".c") != NULL)
+	char *dot = strrchr(file, '.');
+        if (dot && !strcmp(dot, ".c"))  // Ends with '.c'
         {
                 moduleExecutable = substring(file, 0, strlen(file) - 2);
-        }
-        if(moduleExecutable != NULL){
 
 		//char *str = strrchr(moduleExecutable, '/');
 		//int index = strlen(moduleExecutable)-strlen(str);		
@@ -228,6 +238,7 @@ int isModuleRunning(char * file)
 			return 1;
 		}
 	}
+	// TODO: other languages
 	return 0;
 }
 
@@ -235,48 +246,48 @@ int isModuleRunning(char * file)
 /**
 * runModule
 *
+* Description: given a module source file, execute run command for it's binary.
+*	TODO: Running should copy the binary to a hidden numbered copy '.name0', '.name1'.
 */
 int runModule(char *file)
 {
-        //char *path, *canon_path;
-        //path = getcwd(NULL, 512);
-        //canon_path = realpath(path, NULL);
-        //printf(" path %s \n" , path);
-
         char *moduleExecutable = NULL;
-        if(strstr(file, ".c") != NULL)
+	char *dot = strrchr(file, '.');
+        if (dot && !strcmp(dot, ".c"))  // Ends with '.c' 
         {
                 moduleExecutable = substring(file, 0, strlen(file) - 2);
-        }
-        if(moduleExecutable == NULL){
-                return 0;
-        }
 
-        char compileCommand[1024];
-        strcpy(compileCommand, "");
-        strcat(compileCommand, moduleExecutable);
-        strcat(compileCommand, " &>/dev/null & ");
-	//strcat(compileCommand, moduleExecutable);
-	//strcat(compileCommand, ".out &");
-	//printf("%sRun: %s%s\n", KGRN, compileCommand, KNRM);
+		char compileCommand[1024];
+		strcpy(compileCommand, "");
+		strcat(compileCommand, moduleExecutable);
+		strcat(compileCommand, " &>/dev/null & ");
+		//strcat(compileCommand, moduleExecutable);
+		//strcat(compileCommand, ".out &");
+		//printf("%sRun: %s%s\n", KGRN, compileCommand, KNRM);
 
-        system(compileCommand);
-
-        free(moduleExecutable);
-        //free(path);
-        return 1;
+		system(compileCommand);
+		free(moduleExecutable);
+		return 1;
+	}
+	// TODO: other languages
+	return 0;
 }
 
 
+/**
+* stopModule
+*
+* Description: given a module source file stop any processes running.
+*/
 int stopModule(char *file)
 {
 	char *moduleExecutable = NULL;
-        if(strstr(file, ".c") != NULL)
+	char *dot = strrchr(file, '.');
+        if (dot && !strcmp(dot, ".c"))  // Ends with '.c'
         {
                 moduleExecutable = substring(file, 0, strlen(file) - 2);
-        }
-        if(moduleExecutable != NULL){
-               char processName[512];
+               
+		char processName[512];
                 strcpy(processName, moduleExecutable);
 
                 pid_t pid = proc_find(processName);
@@ -292,12 +303,20 @@ int stopModule(char *file)
 			printf("KILL: %s\n", cmd);
 
 			system(cmd);	
-		} 
+		}
+		free(moduleExecutable); 
         }
+	// TODO: other languages
 	return 1;
 }
 
 
+/**
+* scanFiles
+*
+* Description: read files in apps directory. Compile and run if nessissary.
+*	TODO: monitor activity and errors. Spin up and shutdown multiple module instances if needed.
+*/
 void scanFiles(char *path)
 {
 	DIR           *d;
@@ -318,7 +337,6 @@ void scanFiles(char *path)
 			strcat(currFile, dir->d_name);
 
 			//printf("%s type: %d \n", currFile, dir->d_type);
-
 			if(strstr(currFile, ".c") != NULL && isFileModule(currFile)){
 				//printf("module: %s \n", currFile);
 				
@@ -349,6 +367,8 @@ void scanFiles(char *path)
 	
 }
 
+
+// Move to another file
 char *substring(char *string, int position, int length) 
 {
 	char *pointer;
@@ -372,9 +392,10 @@ char *substring(char *string, int position, int length)
 	return pointer;
 }
 
+
 main()
 {
-	printf("%sM2 App Engine kernel starting!\n%s", KRED, KNRM);
+	printf("%sM2 App Engine kernel starting! %s \n", KRED, KNRM);
 	int running = 1;
 	while(running)
 	{	

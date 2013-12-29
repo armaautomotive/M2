@@ -11,10 +11,10 @@ void initalize( void )
 	puts("library module initalize");
 	//running = 0;
 	//message_reader_thread = NULL;
-	
-	//receiveMessages();	
 
-	
+
+	// This is tricky, starting the receive thread may mean that the lib is not linked to the module if no calls to it are made.	
+	//receiveMessages();	
 }
 
 /**
@@ -114,15 +114,12 @@ int receiveMessages()
 }
 
 /**
-* receive messages   - receiveMessages()
+* receive messages  Thread  
 *
 * call to ...
 */
-//void *print_message_function( void *ptr );
-
 void *messageReader( void *ptr )
 {
-	// TODO: read fifo pipe file from module name
 	char my_queue_name[512]; //argv[0];
         strcpy(my_queue_name, "/");
 	strcat(my_queue_name, __progname);	
@@ -134,7 +131,7 @@ void *messageReader( void *ptr )
 
 	/* initialize the queue attributes */
 	attr.mq_flags = 0;
-	attr.mq_maxmsg = 10;
+	attr.mq_maxmsg = 100;
 	attr.mq_msgsize = MAX_SIZE;
 	attr.mq_curmsgs = 0;
 
@@ -150,15 +147,13 @@ void *messageReader( void *ptr )
 		CHECK(bytes_read >= 0);
 
 		buffer[bytes_read] = '\0';
-		//if (! strncmp(buffer, MSG_STOP, strlen(MSG_STOP)))
-		//{
-			//must_stop = 1;
-		//}
-		//else
-		//{
-			messageHandler(NULL, NULL, buffer);
-			//printf("Received: %s\n", buffer);
-		//}
+		
+		// TODO: parse and supply correct parameters to handler.
+		//char caller[100];
+		//char message_name[1];
+ 
+		messageHandler(NULL, NULL, buffer);
+		//printf("Received: %s\n", buffer);
 	} while (!must_stop);
 
 	/* cleanup */
@@ -182,12 +177,11 @@ void *messageReader( void *ptr )
 * messageHandler
 *
 * Description: This is an abstract function and should be overidden by modules. 
-*
-*
+*	It is called by messages received in the current module.
 */
 int messageHandler(char * caller, char * message_name, char * arguments)
 {
-	printf("lib messageHandler: abstract function: received: %s \n", arguments);
-	return 1;
+	//printf("lib messageHandler: abstract function: received: %s \n", arguments);
+	return 0;
 }
 
