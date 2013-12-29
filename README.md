@@ -35,12 +35,15 @@ Installation:
 Download M2 and extract it into: /var/m2
 
 Start the kernel:
+```
 > cd /var/m2
 > bin/m2
+```
 
 All module applications are located in m2/apps. Place the following module files.
 
 hello.c
+```
 #include <stdio.h>
 #include <unistd.h>
 #include "../src/module.h"
@@ -67,9 +70,10 @@ int main(void)
         }
         return 0;
 }
-
+```
 
 world.c
+```
 #include <stdio.h>
 #include <unistd.h>
 #include "../src/module.h"
@@ -92,6 +96,7 @@ int main(void)
         }
         return 0;
 }
+```
 
 You should see the modules print output to the terminal.
 
