@@ -1,9 +1,9 @@
 #include <stdio.h>
 #include <unistd.h>
-#include "../src/module.h"
+#include "module.h"
 
 // Callbacks are not currently implemented
-int callback(char * caller, char * message_name, char * arguments)
+int callbackHandler(char * caller, char * message_name, char * arguments)
 {
         puts("hello module callback");                    
         return 1;

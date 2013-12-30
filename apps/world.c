@@ -1,11 +1,12 @@
 #include <stdio.h>
 #include <unistd.h>
-#include "../src/module.h"
+#include "module.h"
 
 // Called for each message this module (program) receives.
 int messageHandler(char * caller, char * message_name, char * arguments)
 {
-	printf("World module handler: %s  v2 \n\n", arguments);
+	printf("World module handler: %s  v3 \n\n", arguments);
+	sendCallback(caller, "message");
 	return 1;
 }
 

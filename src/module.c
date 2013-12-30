@@ -8,7 +8,7 @@
 */
 void initalize( void )
 {
-	puts("library module initalize");
+	//puts("library module initalize");
 	//running = 0;
 	//message_reader_thread = NULL;
 
@@ -68,15 +68,43 @@ void sendMessage(char * name, char * arguments)
 	*/
 } 
  
-void foo(void)
+
+/**
+* sendCallback
+*
+*/
+int sendCallback(char * name, char * arguments)
 {
-	puts("Hello, I'm a shared library");
-	callback(NULL, NULL, NULL);
+	char queue_name[512]; //argv[0];
+        strcpy(queue_name, __progname);
+        //printf(" queue name: %s \n", queue_name);
+        // TODO: find destination pipe file for a given function name using the kernel.
+
+        char to_queue_name[512];
+        strcpy(to_queue_name, "/");
+        strcat(to_queue_name, name);
+
+        mqd_t mq;
+        char buffer[MAX_SIZE];
+
+        /* open the mail queue */
+        mq = mq_open(to_queue_name, O_WRONLY);
+        CHECK((mqd_t)-1 != mq);
+
+        memset(buffer, 0, MAX_SIZE);
+        strcpy(buffer, arguments);
+
+        /* send the message */
+        CHECK(0 <= mq_send(mq, buffer, MAX_SIZE, 0));
+
+        /* cleanup */
+        CHECK((mqd_t)-1 != mq_close(mq));
+	return 1;
 }
 
 
 /**
-* callback
+* callbackHandler
 *
 * Description: This is an abstract function and should be overidden by modules. 
 * 	It is called when a message sent returns a response from the receiving module.
@@ -84,9 +112,9 @@ void foo(void)
 *
 * Params: 
 */
-int callback(char * caller, char * message_name, char * arguments)
+int callbackHandler(char * caller, char * message_name, char * arguments)
 {
-	puts("library callback");	
+	//puts("library callback");	
 	return 1;
 }
 

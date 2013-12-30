@@ -1,10 +1,10 @@
 #include <stdio.h>
-#include "../src/m2.h"
+#include "module.h"
  
 int main(void)
 {
-	puts("This is a shared library test...");
-	foo();
+	puts("This is a sample test...");
+	receiveMessages();
 
 	int i = 100;
 	while(i > 0){

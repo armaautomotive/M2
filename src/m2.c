@@ -153,7 +153,9 @@ int compileModule(char *file)
 		strcat(compileCommand, path);
 		strcat(compileCommand, "/lib -Wl,-rpath=");
 		strcat(compileCommand, path);
-		strcat(compileCommand, "/lib -Wall -o "); 
+		strcat(compileCommand, "/lib -I");
+		strcat(compileCommand, path);
+		strcat(compileCommand, "/src -Wall -o "); 
 		strcat(compileCommand, moduleExecutable);
 		strcat(compileCommand, " ");
 		strcat(compileCommand, file);
