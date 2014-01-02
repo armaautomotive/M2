@@ -14,9 +14,9 @@ int main(void)
 	puts("Hello starting... ");
 	receiveMessages();  // start receiving messages for this module (program).
 
-        int i = 20;
+        int i = 10;
         while(i > 0){
-		puts("Hello module. v3");
+		puts("Hello module. v4");
 
 		sendMessage("world", " world !!!");
 

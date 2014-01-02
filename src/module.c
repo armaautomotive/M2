@@ -1,5 +1,6 @@
 #include "module.h"
 #include "common.h"
+#include "strings.h"
 
 /**
 * initalize
@@ -44,28 +45,35 @@ void sendMessage(char * name, char * arguments)
 
 	/* open the mail queue */
 	mq = mq_open(to_queue_name, O_WRONLY);	
-	CHECK((mqd_t)-1 != mq);
+	//CHECK((mqd_t)-1 != mq);
+	if((mqd_t)-1 == mq)
+	{
+		// ask kernel for destination
+		printf(" sendMessage destination not found... \n");
+	
+		return;
+	}
 
+	// Format message: caller(CALLER_MODULE_NAME) recipient(TARGET_MODULE_NAME) message(MESSAGE_DATA) 
         memset(buffer, 0, MAX_SIZE);
-	strcpy(buffer, arguments);	
+
+	strcpy(buffer, "from(");
+	strcat(buffer, queue_name);
+	strcat(buffer, ") ");
+
+	strcat(buffer, "to(");
+	strcat(buffer, name);
+	strcat(buffer, ") ");
+
+	strcat(buffer, "message(");
+	strcat(buffer, arguments);
+	strcat(buffer, ")");	
 
         /* send the message */
         CHECK(0 <= mq_send(mq, buffer, MAX_SIZE, 0));
 
 	/* cleanup */
 	CHECK((mqd_t)-1 != mq_close(mq));
-
-	/*
-	// FIFO
-	FILE *fp;
-        if((fp = fopen("test_fifo", "w")) == NULL)
-        {
-                printf("SHIT");
-        }
-	fprintf(fp, "%s", arguments);
-	fflush(fp); // flush any buffered IO to the pipe
-	fclose(fp);
-	*/
 } 
  
 
@@ -177,26 +185,30 @@ void *messageReader( void *ptr )
 		buffer[bytes_read] = '\0';
 		
 		// TODO: parse and supply correct parameters to handler.
-		//char caller[100];
-		//char message_name[1];
- 
-		messageHandler(NULL, NULL, buffer);
+		//char caller[100] = "";
+		//char *message_name;
+		//message_name = parseMessageTag(buffer, "message");
+		char * to = NULL;
+		char * from = NULL;
+		char * message = NULL;
+		message = parseMessageTag(buffer, "message");
+		to = parseMessageTag(buffer, "to");
+		from = parseMessageTag(buffer, "from");
+		//free(message_name); 
+
+		//printf("msg: %s \n", (char*)message);
+
+		messageHandler(from, to, message);
 		//printf("Received: %s\n", buffer);
+		free(message);
+		free(to);
+		free(from);
 	} while (!must_stop);
 
 	/* cleanup */
 	CHECK((mqd_t)-1 != mq_close(mq));	
 	CHECK((mqd_t)-1 != mq_unlink(QUEUE_NAME));
 
-	/*
-	// FIFO
-	FILE *fd = fopen ("test_fifo", "r");
-	char buffer[1024];
-	while (fgets(buffer, 50, fd) != NULL)
-		puts(buffer);
-
-	fclose(fd);
-	*/
 	return NULL;
 }
 

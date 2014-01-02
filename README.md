@@ -37,7 +37,7 @@ Message passing is asynchronous and implemented through a set of message passing
 <i>callbackHandler()</i> - receives a response message from receiving modules after a sendMessage call.
 
 
-Installation:
+<h3>Installation:</h3>
 
 Download M2 and extract it into: /var/m2
 

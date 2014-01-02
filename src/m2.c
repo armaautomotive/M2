@@ -46,8 +46,9 @@
 #include <sys/stat.h>
 #include "vector.h"
 #include "m2.h"
+#include "strings.h"
 
-char* substring(char*, int, int);
+//char* substring(char*, int, int);
 extern void initalize(void) __attribute__((constructor));
 extern void shutdown (void) __attribute__((destructor));
 
@@ -158,6 +159,7 @@ int compileModule(char *file)
 		strcat(compileCommand, "/src -Wall -o "); 
 		strcat(compileCommand, moduleExecutable);
 		strcat(compileCommand, " ");
+		strcat(compileCommand, "./src/strings.c ");
 		strcat(compileCommand, file);
 		strcat(compileCommand, " -lmodule -pthread -lrt"); 	
 		printf(" compile: %s \n", compileCommand);
@@ -374,34 +376,10 @@ void scanFiles(char *path)
 }
 
 
-// Move to another file
-char *substring(char *string, int position, int length) 
-{
-	char *pointer;
-	int c;
-	pointer = malloc(length+1);
- 
-	if (pointer == NULL)
-	{
-		printf("Unable to allocate memory.\n");
-		//exit(EXIT_FAILURE);
-	}
- 
-	for (c = 0 ; c < position -1 ; c++) 
-		string++; 
- 	for (c = 0 ; c < length ; c++)
-	{
-		*(pointer+c) = *string;      
-		string++;   
-	}
- 	*(pointer+c) = '\0';
-	return pointer;
-}
-
-
 main()
 {
 	printf("%sM2 App Engine kernel starting! %s \n", KRED, KNRM);
+
 	int running = 1;
 	while(running)
 	{	
