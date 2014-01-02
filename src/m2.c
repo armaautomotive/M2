@@ -47,6 +47,7 @@
 #include "vector.h"
 #include "m2.h"
 #include "strings.h"
+#include "processes.h"
 
 //char* substring(char*, int, int);
 extern void initalize(void) __attribute__((constructor));
@@ -107,7 +108,8 @@ int needsCompile(char * file)
         
 		int sourceTime = 0;
 		int binaryTime = 0;
-		
+		int errorTime = 0;	
+	
 		struct stat fst;
                 bzero(&fst, sizeof(fst));
                 if (stat(file, &fst) == 0) {
@@ -119,7 +121,24 @@ int needsCompile(char * file)
 			binaryTime = fst.st_mtime;
 		}
 
+		
+		// error file
+		char errorFile[1024];
+		strcpy(errorFile, file);
+		strcat(errorFile, ".error");
+		
+		bzero(&fst, sizeof(fst));
+		if (stat(errorFile, &fst) == 0) {
+			errorTime = fst.st_mtime;
+		}	
+
 		free(moduleExecutable);
+
+		// src: 1388700545 err: 1388701822
+		//printf(" src: %d err: %d   \n", sourceTime, errorTime);
+		if( errorTime > 0 && sourceTime < errorTime ){ // false if error file is newer
+			return 0;
+		}
 
 		if( sourceTime > binaryTime ){
 			return 1;
@@ -162,59 +181,38 @@ int compileModule(char *file)
 		strcat(compileCommand, "./src/strings.c ");
 		strcat(compileCommand, file);
 		strcat(compileCommand, " -lmodule -pthread -lrt"); 	
-		printf(" compile: %s \n", compileCommand);
+		strcat(compileCommand, " 2>&1");
+		printf("\ncompile: %s \n", compileCommand);
 
-		system(compileCommand);
+		char *response = NULL;
+		int r2 = runCommand(compileCommand, &response);
+		//printf("response: %d - %s \n", r2, response);
+		if(r2)
+		{
+			printf("Error: %s \n", response);
+			char errorFile[1024];
+			strcpy(errorFile, file);
+			strcat(errorFile, ".error");
+			//printf(" error : %s \n", errorFile);
+			FILE *fp;
+			fp = fopen (errorFile,"w");
+			fprintf(fp,"%s\n\n", compileCommand);
+			fprintf(fp,"%s\n", response);
+			fclose(fp);
+		}
+		free(response);
+
+		//int r = system(compileCommand);
+		//printf("  res: %d  - %d  \n", r,  WIFEXITED(r) );	
 
 		free(moduleExecutable);
-		return 1;
+
+
+		if(r2 == 0)
+			return 1;
 	}
 	// TODO: other languages
 	return 0;
-}
-
-
-// move this into another file
-pid_t proc_find(const char* name) 
-{
-    DIR* dir;
-    struct dirent* ent;
-    char* endptr;
-    char buf[512];
-
-    if (!(dir = opendir("/proc"))) {
-        perror("can't open /proc");
-        return -1;
-    }
-
-    while((ent = readdir(dir)) != NULL) {
-        /* if endptr is not a null character, the directory is not
-         * entirely numeric, so ignore it */
-        long lpid = strtol(ent->d_name, &endptr, 10);
-        if (*endptr != '\0') {
-            continue;
-        }
-
-        /* try to open the cmdline file */
-        snprintf(buf, sizeof(buf), "/proc/%ld/cmdline", lpid);
-        FILE* fp = fopen(buf, "r");
-        if (fp) {
-            if (fgets(buf, sizeof(buf), fp) != NULL) {
-                /* check the first token in the file, the program name */
-                char* first = strtok(buf, " ");
-                //printf("%s %s == %s   %s\n", KRED, first, name , KNRM);
-		if (!strcmp(first, name)) {
-                    fclose(fp);
-                    closedir(dir);
-                    return (pid_t)lpid;
-                }
-            }
-            fclose(fp);
-        }
-    }
-
-    closedir(dir);
-    return -1;
 }
 
 
@@ -347,19 +345,23 @@ void scanFiles(char *path)
 			//printf("%s type: %d \n", currFile, dir->d_type);
 			if(strstr(currFile, ".c") != NULL && isFileModule(currFile)){
 				//printf("module: %s \n", currFile);
-				
+				int r = 1;				
+
 				// Does it need to be compiled?
 				if(needsCompile(currFile)){
 					if(isModuleRunning(currFile)){ // Shut down
 						stopModule(currFile);
 					}
 					if(!isModuleRunning(currFile)){	// Can't compile if it's running
-						compileModule(currFile);
+						r = compileModule(currFile);
+						if(!r){
+							// write error log
+						}
 					}
 				}
 
 				// Is it running?
-				if(!isModuleRunning(currFile)){	
+				if(!isModuleRunning(currFile) && r){	
 					runModule(currFile);
 				}
 			}	
