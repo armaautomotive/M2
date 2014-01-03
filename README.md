@@ -11,17 +11,9 @@ Management and visualisation tools allow for modules to be connected together an
 as well as identify error that occur in modules and their connections. 
 
 
-<!--
-A kernel manages the compilation and running of applications as modules who communicate with each other using messages.
+<h3>Summary</h3>
 
-Modules are native applications that implement a shared library allowing them to: be compiled and reloaded when source changes (kernel does this), communicate using IPC and report on message and error activity. Application modules can be written in C. Javascript, c++ and Java will follow shortly.
-
-Visualisation of applications (modules), their code for editing, errors and messages flowing between them are currently absent but represent a critical element to the system.
--->
-
-<h3>About:</h3>
-
-The framework allows for systems to be built and maintained with special conideration for secuity, 
+The framework allows for systems to be built and maintained with special consideration for secuity, 
 reliability and clarity along with real time flexibility for change.
 
 Systems comprising multiple modules can run interrupted while individual modules are changed and reloaded as connections can be designed to re-route traffic. 
@@ -44,19 +36,27 @@ Message passing is asynchronous and implemented through a set of message passing
       - starts a thread to read the modules message queue. 
 	Messages are sent to the modules messageHandler() function.
     </td>
+  </tr>
+  <tr>
     <td> <i>messageHandler()</i> </td>
     <td>
       - abstract function overridden by the module receives incoming messages.
     </td>
+  <tr>
+  </tr>
     <td> <i>sendMessage()</i> </td>
     <td> 
       - sends a message to one or more other modules directly by name or with 
 	help from the kernel if no recipients are found.
     </td>
+  </tr>
+  <tr>
     <td> <i>sendCallback()</i> </td>
     <td>
       - sends response message to calling module.
     </td>
+  </tr>
+  <tr>
     <td><i>callbackHandler()</i> </td>
     <td>
       - receives a response message from receiving modules after a sendMessage call.
