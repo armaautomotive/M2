@@ -1,41 +1,68 @@
 M2
 ==
 
-M2 is a runtime modular application framework. A kernel manages the compilation and running of applications as modules who communicate with each other using messages.
+M2 is an application platform for running programs, written in several languages, that communicate with each other using message passing. 
+
+Programs that include the M2 library then run as modules where they are compiled when changed and run as needed to support load. 
+
+Languages that are currently supported are C/C++ with javascript and others under development.  
+
+Management and visualisation tools allow for modules to be connected together and visualize data flowing between them 
+as well as identify error that occur in modules and their connections. 
+
+
+<!--
+A kernel manages the compilation and running of applications as modules who communicate with each other using messages.
 
 Modules are native applications that implement a shared library allowing them to: be compiled and reloaded when source changes (kernel does this), communicate using IPC and report on message and error activity. Application modules can be written in C. Javascript, c++ and Java will follow shortly.
 
 Visualisation of applications (modules), their code for editing, errors and messages flowing between them are currently absent but represent a critical element to the system.
+-->
 
-<h3>Why:</h3>
+<h3>About:</h3>
 
-The framework allows for applications to be built and maintained in different ways.
+The framework allows for systems to be built and maintained with special conideration for secuity, 
+reliability and clarity along with real time flexibility for change.
 
-Systems comprising multiple modules can run interrupted while individual modules are changed and reloaded. This reduces the steps required to deploy changes.
+Systems comprising multiple modules can run interrupted while individual modules are changed and reloaded as connections can be designed to re-route traffic. 
 
 Load introspection is enhanced because modules report on message activity and errors. 
+
 Errors in modules can be redirected around alternate paths and bottlenecked modules can spin up multiple instances for more capacity.
 
 New design patterns can be explored for simplified code with the aim of improved security, reliability and maintainability.
-
-Performance. Modules applications run as services with a run loop and functions called when messages arrive. 
-Processes are resident in memory so no threads are spawned on demand.
 
 
 <h3>Message API:</h3>
 
 Message passing is asynchronous and implemented through a set of message passing functions.
 
-<i>receiveMessages()</i> - starts a thread to read the modules message queue. Messages are sent to the modules messageHandler() function.
-
-<i>messageHandler()</i> - abstract function overridden by the module receives incoming messages.
-
-<i>sendMessage()</i> - sends a message to one or more other modules directly by name or with help from the kernel if no recipients are found.
-
-<i>sendCallback()</i> - sends response message to calling module.
-
-<i>callbackHandler()</i> - receives a response message from receiving modules after a sendMessage call.
-
+<table>
+  <tr>
+    <td> <i>receiveMessages()</i> </td>
+    <td>
+      - starts a thread to read the modules message queue. 
+	Messages are sent to the modules messageHandler() function.
+    </td>
+    <td> <i>messageHandler()</i> </td>
+    <td>
+      - abstract function overridden by the module receives incoming messages.
+    </td>
+    <td> <i>sendMessage()</i> </td>
+    <td> 
+      - sends a message to one or more other modules directly by name or with 
+	help from the kernel if no recipients are found.
+    </td>
+    <td> <i>sendCallback()</i> </td>
+    <td>
+      - sends response message to calling module.
+    </td>
+    <td><i>callbackHandler()</i> </td>
+    <td>
+      - receives a response message from receiving modules after a sendMessage call.
+    </td>
+  </tr>
+</table>
 
 <h3>Installation:</h3>
 
@@ -94,7 +121,6 @@ int messageHandler(char * caller, char * message_name, char * arguments)
         sendCallback(caller, "message");
         return 1;
 }
-
 
 int main(void)
 {
