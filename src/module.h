@@ -15,16 +15,19 @@
 pthread_t message_reader_thread;
 extern char *__progname;
 
+long message_id;
+
 extern void initalize(void) __attribute__((constructor)); 
 extern void shutdownModule (void) __attribute__((destructor));
 
-extern void sendMessage(char * name, char * arguments);
+//extern long sendMessage(char * name, char * arguments);
+extern long sendMessage(char * name, long msg_id, char * arguments);
 extern int receiveMessages();
 extern void *messageReader( void *ptr );
-extern int messageHandler(char * caller, char * message_name, char * arguments);
+extern int messageHandler(char * caller, char * message_name, long msg_id, char * arguments);
 
-extern int sendCallback(char * name, char * arguments);
-extern int callbackHandler(char * caller, char * message_name, char * arguments);
+extern int sendCallback(char * name, long msg_id, char * arguments);
+extern int callbackHandler(char * caller, char * message_name, long msg_id, char * arguments);
  
 #endif  // module_h__
 
