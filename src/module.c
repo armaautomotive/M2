@@ -1,6 +1,7 @@
 #include "module.h"
 #include "common.h"
 #include "strings.h"
+#include "vector.h"
 
 /**
 * initalize
@@ -12,7 +13,7 @@ void initalize( void )
 	//puts("library module initalize");
 	//running = 0;
 	//message_reader_thread = NULL;
-
+	message_id = 0;
 
 	// This is tricky, starting the receive thread may mean that the lib is not linked to the module if no calls to it are made.	
 	//receiveMessages();	
@@ -27,9 +28,16 @@ void initalize( void )
 *	dir.path.modulename - call module by name
 *
 * Payload: caller, target, message
+* @return: long message id. Use to match callback.
 */
-void sendMessage(char * name, char * arguments)
+//long sendMessage(char * name, char * arguments)
+//{
+//	return sendMessage(name, ++message_id, arguments);
+//}
+long sendMessage(char * name, long msg_id, char * arguments)
 {
+	if(msg_id == -1)
+		msg_id = ++message_id;
 	//puts("sendMessage");
 	char queue_name[512]; //argv[0];
 	strcpy(queue_name, __progname);
@@ -50,8 +58,7 @@ void sendMessage(char * name, char * arguments)
 	{
 		// ask kernel for destination
 		printf(" sendMessage destination not found... \n");
-	
-		return;
+		return -1;
 	}
 
 	// Format message: caller(CALLER_MODULE_NAME) recipient(TARGET_MODULE_NAME) message(MESSAGE_DATA) 
@@ -65,15 +72,23 @@ void sendMessage(char * name, char * arguments)
 	strcat(buffer, name);
 	strcat(buffer, ") ");
 
-	strcat(buffer, "message(");
-	strcat(buffer, arguments);
-	strcat(buffer, ")");	
+	strcat(buffer, "msg_id(");
+        char msg_id_buffer[20];
+        sprintf(msg_id_buffer, "%lu", msg_id);	
+        strcat(buffer, msg_id_buffer);
+        strcat(buffer, ") ");	
+
+        strcat(buffer, "message(");
+        strcat(buffer, arguments);
+        strcat(buffer, ") ");
 
         /* send the message */
         CHECK(0 <= mq_send(mq, buffer, MAX_SIZE, 0));
 
 	/* cleanup */
 	CHECK((mqd_t)-1 != mq_close(mq));
+
+	return message_id;
 } 
  
 
@@ -81,7 +96,7 @@ void sendMessage(char * name, char * arguments)
 * sendCallback
 *
 */
-int sendCallback(char * name, char * arguments)
+int sendCallback(char * name, long msg_id, char * arguments)
 {
 	char queue_name[512]; //argv[0];
         strcpy(queue_name, __progname);
@@ -100,7 +115,25 @@ int sendCallback(char * name, char * arguments)
         CHECK((mqd_t)-1 != mq);
 
         memset(buffer, 0, MAX_SIZE);
-        strcpy(buffer, arguments);
+        //strcpy(buffer, arguments);
+
+	strcpy(buffer, "from(");
+        strcat(buffer, queue_name);
+        strcat(buffer, ") ");
+
+        strcat(buffer, "to(");
+        strcat(buffer, name);
+        strcat(buffer, ") ");
+
+        strcat(buffer, "msg_id(");
+        char msg_id_buffer[20];
+        sprintf(msg_id_buffer, "%lu", msg_id);
+        strcat(buffer, msg_id_buffer);
+        strcat(buffer, ") ");
+
+        strcat(buffer, "callback(");
+        strcat(buffer, arguments);
+        strcat(buffer, ") ");
 
         /* send the message */
         CHECK(0 <= mq_send(mq, buffer, MAX_SIZE, 0));
@@ -120,7 +153,7 @@ int sendCallback(char * name, char * arguments)
 *
 * Params: 
 */
-int callbackHandler(char * caller, char * message_name, char * arguments)
+int callbackHandler(char * caller, char * message_name, long msg_id, char * arguments)
 {
 	//puts("library callback");	
 	return 1;
@@ -191,18 +224,31 @@ void *messageReader( void *ptr )
 		char * to = NULL;
 		char * from = NULL;
 		char * message = NULL;
+		char * callback = NULL;
+		char * msg_id_s = NULL;
+		long msg_id = 0;
 		message = parseMessageTag(buffer, "message");
+		callback = parseMessageTag(buffer, "callback");
 		to = parseMessageTag(buffer, "to");
 		from = parseMessageTag(buffer, "from");
+		msg_id_s = parseMessageTag(buffer, "msg_id");
+		msg_id = atol (msg_id_s);
 		//free(message_name); 
 
 		//printf("msg: %s \n", (char*)message);
-
-		messageHandler(from, to, message);
+		if( message != NULL )
+		{
+			messageHandler(from, to, msg_id, message);
+		} else if ( callback != NULL )
+		{
+			callbackHandler(from, to, msg_id, callback);
+		}
 		//printf("Received: %s\n", buffer);
 		free(message);
+		free(callback);
 		free(to);
 		free(from);
+		free(msg_id_s);
 	} while (!must_stop);
 
 	/* cleanup */
@@ -219,7 +265,7 @@ void *messageReader( void *ptr )
 * Description: This is an abstract function and should be overidden by modules. 
 *	It is called by messages received in the current module.
 */
-int messageHandler(char * caller, char * message_name, char * arguments)
+int messageHandler(char * caller, char * message_name, long msg_id, char * arguments)
 {
 	//printf("lib messageHandler: abstract function: received: %s \n", arguments);
 	return 0;

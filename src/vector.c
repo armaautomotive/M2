@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
- 
+#include <string.h>
 #include "vector.h"
  
 void vector_init(vector *v)
@@ -15,7 +15,7 @@ int vector_count(vector *v)
 	return v->count;
 }
  
-void vector_add(vector *v, void *e)
+int vector_add(vector *v, void *e)
 {
 	if (v->size == 0) {
 		v->size = 10;
@@ -32,6 +32,7 @@ void vector_add(vector *v, void *e)
  
 	v->data[v->count] = e;
 	v->count++;
+	return v->count-1;
 }
  
 void vector_set(vector *v, int index, void *e)
@@ -46,7 +47,7 @@ void vector_set(vector *v, int index, void *e)
 void *vector_get(vector *v, int index)
 {
 	if (index >= v->count) {
-		return;
+		return NULL;
 	}
  
 	return v->data[index];
@@ -85,8 +86,10 @@ int main(void)
 	vector v;
 	vector_init(&v);
  
-	vector_add(&v, "emil");
-	vector_add(&v, "hannes");
+	int a = vector_add(&v, "emil");
+	printf(" first item index %d \n", a);
+	a = vector_add(&v, "hannes");
+	printf(" second %d \n", a);
 	vector_add(&v, "lydia");
 	vector_add(&v, "olle");
 	vector_add(&v, "erik");

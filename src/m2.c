@@ -48,6 +48,7 @@
 #include "m2.h"
 #include "strings.h"
 #include "processes.h"
+#include "unqlite.h"
 
 //char* substring(char*, int, int);
 extern void initalize(void) __attribute__((constructor));

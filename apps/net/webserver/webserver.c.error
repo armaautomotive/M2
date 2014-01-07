@@ -1,0 +1,9 @@
+gcc -L/var/m2/lib -Wl,-rpath=/var/m2/lib -I/var/m2/src -Wall -o ./apps/net/webserver/webserver ./src/strings.c ./apps/net/webserver/webserver.c -lmodule -pthread -lrt 2>&1
+
+./apps/net/webserver/webserver.c:10:1: error: unknown type name ‘vector’
+./apps/net/webserver/webserver.c: In function ‘callbackHandler’:
+./apps/net/webserver/webserver.c:16:9: warning: format ‘%u’ expects argument of type ‘unsigned int’, but argument 2 has type ‘long int’ [-Wformat]
+./apps/net/webserver/webserver.c: In function ‘main’:
+./apps/net/webserver/webserver.c:34:4: warning: implicit declaration of function ‘vector_init’ [-Wimplicit-function-declaration]
+./apps/net/webserver/webserver.c:71:12: warning: unused variable ‘msg_id’ [-Wunused-variable]
+

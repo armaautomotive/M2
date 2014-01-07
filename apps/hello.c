@@ -3,10 +3,14 @@
 #include "module.h"
 
 // Callbacks are not currently implemented
-int callbackHandler(char * caller, char * message_name, char * arguments)
+int callbackHandler(char * caller, char * message_name, long msg_id, char * arguments)
 {
-        puts("hello module callback");                    
-        return 1;
+        //puts("hello module callback");                    
+        printf(" callback  %ul from: %s \n", msg_id, caller);
+
+	//sendMessage("world", "AHAHAHAAHAHAHAHAH");
+
+	return 1;
 }
 
 int main(void)
@@ -18,7 +22,7 @@ int main(void)
         while(i > 0){
 		puts("Hello module. v4");
 
-		sendMessage("world", " world !!!");
+		sendMessage("world", -1, "world !!!");
 
                 sleep(1);
                 i--;
