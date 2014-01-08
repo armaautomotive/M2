@@ -1,3 +1,4 @@
+#include <signal.h>
 #include "module.h"
 #include "common.h"
 #include "strings.h"
@@ -17,7 +18,21 @@ void initalize( void )
 
 	// This is tricky, starting the receive thread may mean that the lib is not linked to the module if no calls to it are made.	
 	//receiveMessages();	
+
+	if (signal (SIGINT, termination_handler) == SIG_IGN)
+		signal (SIGINT, SIG_IGN);
+	if (signal (SIGHUP, termination_handler) == SIG_IGN)
+		signal (SIGHUP, SIG_IGN);
+	if (signal (SIGTERM, termination_handler) == SIG_IGN)
+		signal (SIGTERM, SIG_IGN);	
 }
+
+void termination_handler (int signum)
+{
+	//printf("terminate %d \n", signum);
+	deconstructor();
+}
+
 
 /**
 * sendMessage
@@ -34,8 +49,9 @@ void initalize( void )
 //{
 //	return sendMessage(name, ++message_id, arguments);
 //}
-long sendMessage(char * name, long msg_id, char * arguments)
+int sendMessage(char * name, long msg_id, char * arguments)
 {
+	int result = 0;
 	if(msg_id == -1)
 		msg_id = ++message_id;
 	//puts("sendMessage");
@@ -58,7 +74,7 @@ long sendMessage(char * name, long msg_id, char * arguments)
 	{
 		// ask kernel for destination
 		printf(" sendMessage destination not found... \n");
-		return -1;
+		return 0;
 	}
 
 	// Format message: caller(CALLER_MODULE_NAME) recipient(TARGET_MODULE_NAME) message(MESSAGE_DATA) 
@@ -83,13 +99,21 @@ long sendMessage(char * name, long msg_id, char * arguments)
         strcat(buffer, ") ");
 
         /* send the message */
-        CHECK(0 <= mq_send(mq, buffer, MAX_SIZE, 0));
+        if(0 <= mq_send(mq, buffer, MAX_SIZE, 0)){
+		result = 1;
+	}
 
 	/* cleanup */
 	CHECK((mqd_t)-1 != mq_close(mq));
 
-	return message_id;
+	return result;
 } 
+
+
+long getFreeMsgId()
+{
+	return ++message_id; 
+}
  
 
 /**
@@ -160,11 +184,23 @@ int callbackHandler(char * caller, char * message_name, long msg_id, char * argu
 }
 
 
+/**
+* shutdownModule
+*
+* Description: internal function 
+*/
 void shutdownModule( void )
 {
 	//puts("library module shutdown");
 	pthread_cancel(message_reader_thread);
 }
+
+
+void deconstructor( void )
+{
+	// Abstract deconstructor implemented by modules, called when shutting down.
+}
+
 
 /**
 *

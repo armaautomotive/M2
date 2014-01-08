@@ -17,11 +17,15 @@ extern char *__progname;
 
 long message_id;
 
+extern void termination_handler (int signum);
+
 extern void initalize(void) __attribute__((constructor)); 
 extern void shutdownModule (void) __attribute__((destructor));
+extern void deconstructor (void) __attribute__((destructor));
 
 //extern long sendMessage(char * name, char * arguments);
-extern long sendMessage(char * name, long msg_id, char * arguments);
+extern long getFreeMsgId();
+extern int sendMessage(char * name, long msg_id, char * arguments);
 extern int receiveMessages();
 extern void *messageReader( void *ptr );
 extern int messageHandler(char * caller, char * message_name, long msg_id, char * arguments);

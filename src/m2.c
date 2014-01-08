@@ -180,6 +180,7 @@ int compileModule(char *file)
 		strcat(compileCommand, moduleExecutable);
 		strcat(compileCommand, " ");
 		strcat(compileCommand, "./src/strings.c ");
+		strcat(compileCommand, "./src/vector.c ");
 		strcat(compileCommand, file);
 		strcat(compileCommand, " -lmodule -pthread -lrt"); 	
 		strcat(compileCommand, " 2>&1");
@@ -270,7 +271,8 @@ int runModule(char *file)
 		strcat(compileCommand, " &>/dev/null & ");
 		//strcat(compileCommand, moduleExecutable);
 		//strcat(compileCommand, ".out &");
-		//printf("%sRun: %s%s\n", KGRN, compileCommand, KNRM);
+		
+		printf("%sRun: %s%s\n", KGRN, compileCommand, KNRM);
 
 		system(compileCommand);
 		free(moduleExecutable);
@@ -306,7 +308,7 @@ int stopModule(char *file)
  
 			//strcat(cmd, "",pid);
 			char cmd[512];
-			sprintf(cmd, "kill %d", pid);	
+			sprintf(cmd, "kill -15 %d", pid);	
 			printf("KILL: %s\n", cmd);
 
 			system(cmd);	

@@ -80,7 +80,8 @@ void vector_free(vector *v)
 {
 	free(v->data);
 }
- 
+
+/* 
 int main(void)
 {
 	vector v;
@@ -112,3 +113,4 @@ int main(void)
  
 	return 0;
 }
+*/
