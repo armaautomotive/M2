@@ -5,7 +5,7 @@
 // Called for each message this module (program) receives.
 int messageHandler(char * caller, char * message_name, long msg_id, char * arguments)
 {
-	printf("World module handler: %ul %s  from: %s v3 \n\n", msg_id, arguments, caller);
+//	printf("World module handler: %ul %s  from: %s v3 \n\n", msg_id, arguments, caller);
 	
 	sendCallback(caller, msg_id, "message");
 	
@@ -14,7 +14,7 @@ int messageHandler(char * caller, char * message_name, long msg_id, char * argum
 
 int main(void)
 {
-	puts("World starting... ");
+//	puts("World starting... ");
 	receiveMessages();  // start receiving messages for this module (program).
 
         int i = 10;

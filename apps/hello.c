@@ -6,7 +6,7 @@
 int callbackHandler(char * caller, char * message_name, long msg_id, char * arguments)
 {
         //puts("hello module callback");                    
-        printf(" callback  %ul from: %s \n", msg_id, caller);
+//        printf(" callback  %ul from: %s \n", msg_id, caller);
 
 	//sendMessage("world", "AHAHAHAAHAHAHAHAH");
 
@@ -15,12 +15,12 @@ int callbackHandler(char * caller, char * message_name, long msg_id, char * argu
 
 int main(void)
 {
-	puts("Hello starting... ");
+//	puts("Hello starting... ");
 	receiveMessages();  // start receiving messages for this module (program).
 
         int i = 10;
         while(i > 0){
-		puts("Hello module. v4");
+//		puts("Hello module. v4");
 
 		sendMessage("world", -1, "world !!!");
 

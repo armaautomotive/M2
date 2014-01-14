@@ -79,3 +79,29 @@ char *substring(char *string, int position, int length)
         *(pointer+c) = '\0';
         return pointer;
 }
+
+
+/**
+* removeChar
+*
+*/
+void removeChar(char str[], char ch)
+{
+	char *pr = str, *pw = str;
+    while (*pr) {
+        *pw = *pr++;
+        pw += (*pw != ch);
+    }
+    *pw = '\0';
+}
+
+
+/**
+* replaceChar
+*
+*/
+//char* replaceChar(char*, char ch, char to)
+//{
+
+//	return 0;
+//}

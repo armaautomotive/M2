@@ -49,6 +49,7 @@
 #include "strings.h"
 #include "processes.h"
 #include "unqlite.h"
+#include "users.h"
 
 //char* substring(char*, int, int);
 extern void initalize(void) __attribute__((constructor));
@@ -265,16 +266,26 @@ int runModule(char *file)
         {
                 moduleExecutable = substring(file, 0, strlen(file) - 2);
 
-		char compileCommand[1024];
-		strcpy(compileCommand, "");
-		strcat(compileCommand, moduleExecutable);
-		strcat(compileCommand, " &>/dev/null & ");
-		//strcat(compileCommand, moduleExecutable);
-		//strcat(compileCommand, ".out &");
-		
-		printf("%sRun: %s%s\n", KGRN, compileCommand, KNRM);
+		char runCommand[1024];
+		strcpy(runCommand, "");
+		strcat(runCommand, moduleExecutable);
+		strcat(runCommand, " &>/dev/null & ");
+		//strcat(runCommand, moduleExecutable);
+		//strcat(runCommand, ".out &");
+	
+		// Check user account for this module
+		char userName[1024];
+		strcpy(userName, moduleExecutable);
+		removeChar(userName, '/');
+		removeChar(userName, '.');
+		printf(" user: %s \n", userName);	
+		//if( !userExists( ) ){
+		//	createuser();
+		//}
+	
+		printf("%sRun: %s%s\n", KGRN, runCommand, KNRM);
 
-		system(compileCommand);
+		system(runCommand);
 		free(moduleExecutable);
 		return 1;
 	}
@@ -310,8 +321,14 @@ int stopModule(char *file)
 			char cmd[512];
 			sprintf(cmd, "kill -15 %d", pid);	
 			printf("KILL: %s\n", cmd);
+			system(cmd);
 
-			system(cmd);	
+			pid = proc_find(processName);
+			if(pid != -1){
+				sprintf(cmd, "kill -9 %d", pid);
+                        	printf("KILL: %s\n", cmd);
+                        	system(cmd);	
+			}		
 		}
 		free(moduleExecutable); 
         }
@@ -389,6 +406,11 @@ main()
 	while(running)
 	{	
 		scanFiles("./apps");
+
+		//listUsers();
+		//if(userExists("jon")){
+		//	printf("user exists! \n");
+		//}
 
 		//running = 0;
 		sleep(1);
