@@ -9,8 +9,10 @@ int messageHandler(char * caller, char * message_name, long msg_id, char * argum
 	
 	//sleep(5);
 
-	char * msg = " asd       asdasd asd as dasd "; 
-	//sprintf(msg, "message %s %lu \n", arguments, msg_id);
+	//char * msg = " asd       asdasd asd as dasd "; 
+	char msg[4028];
+	sprintf(msg, "message: %s %lu \n", arguments, msg_id);
+	//strcat(msg, arguments);
 
 	sendCallback(caller, msg_id, msg); 
 	

@@ -16,6 +16,9 @@ as well as identify error that occur in modules and their connections.
 The framework allows for systems to be built and maintained with special consideration for secuity, 
 reliability and clarity along with real time flexibility for change.
 
+Modules run as seperate processes isolating crashes and protecting memory access from other modules. 
+Modules are also run under their own user account to protect resources from other modules. 
+
 Systems comprising multiple modules can run interrupted while individual modules are changed and reloaded as connections can be designed to re-route traffic. 
 
 Load introspection is enhanced because modules report on message activity and errors. 
