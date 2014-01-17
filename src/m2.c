@@ -266,22 +266,43 @@ int runModule(char *file)
         {
                 moduleExecutable = substring(file, 0, strlen(file) - 2);
 
+		// Check user account for this module
+                char userName[1024];
+                strcpy(userName, moduleExecutable);
+                removeChar(userName, '/');
+                removeChar(userName, '.');
+                if(userName[0] == 'a' && userName[1] == 'p' && userName[2] == 'p' && userName[3] == 's'){
+                        char userTemp[1024];
+                        strcpy(userTemp, userName + 4);
+                        strcpy(userName, userTemp);
+                }
+                char userTemp[1024];
+                strcpy(userTemp, "m2");
+                strcat(userTemp, userName);
+                strcpy(userName, userTemp);
+                //printf(" user: %s \n", userName);
+                if( !userExists(userName) ){
+                        printf("Create user: %s \n", userName);
+                        createUser(userName);
+                }
+
+		// Chown program
+		char chown[1024];
+		strcpy(chown, "chown ");
+		strcat(chown, userName);
+		strcat(chown, " ");
+		strcat(chown, moduleExecutable);
+		system(chown);
+
+		// generate execute command
 		char runCommand[1024];
-		strcpy(runCommand, "");
+		strcpy(runCommand, "su -m ");
+		strcat(runCommand, userName);
+		strcat(runCommand, " -c ");
 		strcat(runCommand, moduleExecutable);
 		strcat(runCommand, " &>/dev/null & ");
 		//strcat(runCommand, moduleExecutable);
 		//strcat(runCommand, ".out &");
-	
-		// Check user account for this module
-		char userName[1024];
-		strcpy(userName, moduleExecutable);
-		removeChar(userName, '/');
-		removeChar(userName, '.');
-		printf(" user: %s \n", userName);	
-		//if( !userExists( ) ){
-		//	createuser();
-		//}
 	
 		printf("%sRun: %s%s\n", KGRN, runCommand, KNRM);
 

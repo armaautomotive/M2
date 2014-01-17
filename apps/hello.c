@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include "module.h"
-
+         
 // Callbacks are not currently implemented
 int callbackHandler(char * caller, char * message_name, long msg_id, char * arguments)
 {
@@ -9,7 +9,7 @@ int callbackHandler(char * caller, char * message_name, long msg_id, char * argu
 //        printf(" callback  %ul from: %s \n", msg_id, caller);
 
 	//sendMessage("world", "AHAHAHAAHAHAHAHAH");
-
+ 
 	return 1;
 }
 

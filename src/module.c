@@ -54,7 +54,6 @@ int sendMessage(char * name, long msg_id, char * arguments)
 	int result = 0;
 	if(msg_id == -1)
 		msg_id = ++message_id;
-	//puts("sendMessage");
 	char queue_name[512]; //argv[0];
 	strcpy(queue_name, __progname);
 	//printf(" queue name: %s \n", queue_name);
@@ -64,16 +63,27 @@ int sendMessage(char * name, long msg_id, char * arguments)
 	strcpy(to_queue_name, "/");
 	strcat(to_queue_name, name);
 
+	// Fails if not admin?????
+
 	mqd_t mq;
 	char buffer[MAX_SIZE];
 
-	/* open the mail queue */
-	mq = mq_open(to_queue_name, O_WRONLY);	
-	//CHECK((mqd_t)-1 != mq);
-	if((mqd_t)-1 == mq)
+	int    flags = O_WRONLY; //  | O_CREAT; // O_WRONLY   O_RDWR 
+        mode_t mode  = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;
+
+        struct mq_attr attr;
+        attr.mq_flags   = 0;
+        attr.mq_maxmsg  = 10;
+        attr.mq_msgsize = 1024;
+        attr.mq_curmsgs = 0;
+
+        mq = mq_open(to_queue_name, flags, mode, &attr);
+	//mq = mq_open(to_queue_name, O_WRONLY, 0666, NULL);	
+	//mq = mq_open(to_queue_name, O_WRONLY);	
+	if(mq == -1)
 	{
 		// ask kernel for destination
-		printf(" sendMessage destination not found... \n");
+		printf("  sendMessage %s mq_open %s (%d) \n", to_queue_name, strerror(errno), errno);
 		return 0;
 	}
 
@@ -134,9 +144,24 @@ int sendCallback(char * name, long msg_id, char * arguments)
         mqd_t mq;
         char buffer[MAX_SIZE];
 
-        /* open the mail queue */
-        mq = mq_open(to_queue_name, O_WRONLY);
-        CHECK((mqd_t)-1 != mq);
+	//int    flags = O_RDWR | O_CREAT;
+	//mode_t mode  = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;
+	
+	//struct mq_attr attr;
+	//attr.mq_flags   = 0;
+	//attr.mq_maxmsg  = 10;
+	//attr.mq_msgsize = 1024;
+	//attr.mq_curmsgs = 0;
+
+	//mq = mq_open(to_queue_name, flags, mode, &attr);
+       	mq = mq_open(to_queue_name, O_WRONLY, 0666, NULL); 
+	/* open the message queue */
+        //mq = mq_open(to_queue_name, O_WRONLY);
+	//CHECK((mqd_t)-1 != mq);
+	if(mq == -1){
+		printf("  sendCallback %s %s (%d) \n", to_queue_name, strerror(errno), errno);
+		return 0;
+	}
 
         memset(buffer, 0, MAX_SIZE);
         //strcpy(buffer, arguments);
@@ -236,13 +261,18 @@ void *messageReader( void *ptr )
 
 	/* initialize the queue attributes */
 	attr.mq_flags = 0;
-	attr.mq_maxmsg = 100;
+	attr.mq_maxmsg = 10; // > 10 requires admin
 	attr.mq_msgsize = MAX_SIZE;
 	attr.mq_curmsgs = 0;
 
 	/* create the message queue */
-	mq = mq_open(my_queue_name, O_CREAT | O_RDONLY, 0644, &attr);
+
+	mode_t mode  = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;	
+
+	//mq = mq_open(my_queue_name, O_CREAT | O_RDONLY, 0666, &attr); // O_RDONLY = ok   O_RDWR = fails
+	mq = mq_open(my_queue_name, O_CREAT | O_RDONLY, mode, &attr);	
 	CHECK((mqd_t)-1 != mq);
+	printf(" queue opened: %s \n ", my_queue_name);
 
 	do {
 		ssize_t bytes_read;
